@@ -1,0 +1,17 @@
+{
+    // emmet関連付け
+    "emmet.showSuggestionsAsSnippets": true,
+    "emmet.triggerExpansionOnTab": true,
+    "emmet.includeLanguages": {
+        "blade.php": "html",
+    },
+    "emmet.variables": {
+        "lang": "jp"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode" // TypeScriptに対してPrettierを適用
+    },
+    "editor.formatOnSave": true, // 保存時に自動でフォーマットする
+    "eslint.workingDirectories": ["./web"],
+    "prettier.prettierPath": "./web/node_modules/prettier",
+}

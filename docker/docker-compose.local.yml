@@ -1,0 +1,34 @@
+# docker-compose.local.yml - ローカル開発用
+
+services:
+  # MailHog - Intel Mac用（linux/amd64）
+  mailhog:
+    image: mailhog/mailhog:latest
+    platform: linux/amd64
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    environment:
+      MH_HOSTNAME: localhost
+    restart: unless-stopped
+    networks:
+      - denzirou-company-web
+    profiles:
+      - intel
+
+  # MailCatcher - M1 Mac用（ARM64ネイティブ）
+  mailcatcher:
+    image: schickling/mailcatcher:latest
+    platform: linux/arm64
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:1080"  # Web UI port
+    restart: unless-stopped
+    networks:
+      - denzirou-company-web
+    profiles:
+      - arm64
+
+networks:
+  denzirou-company-web:
+    driver: bridge

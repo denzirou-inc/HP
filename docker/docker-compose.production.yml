@@ -1,0 +1,47 @@
+# docker-compose.production.yml - 本番環境用
+version: '3.8'
+
+services:
+  web:
+    build:
+      target: runner
+      context: ../
+      dockerfile: docker/web/Dockerfile
+      args:
+        - NODE_VERSION=${NODE_VERSION:-22}
+    container_name: denzirou-prod-web
+    # ポートは外部公開せず、nginxコンテナ経由のみでアクセス
+    environment:
+      NODE_ENV: production
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_TO: ${MAIL_TO:-contact@denzirou.com}
+    networks:
+      - denzirou-production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  nginx:
+    image: nginx:latest
+    container_name: denzirou-prod-nginx
+    ports:
+      - '8080:80'  # nginxプロキシ用ポート（本番環境メイン）
+    volumes:
+      - ./nginx/nextjs.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+    networks:
+      - denzirou-production
+    restart: unless-stopped
+
+networks:
+  denzirou-production:
+    driver: bridge
+    name: denzirou-production-network

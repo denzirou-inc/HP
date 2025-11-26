@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+      "vscode-icons-team.vscode-icons",
+      "neilbrayfield.php-docblocker",
+      "bmewburn.vscode-intelephense-client",
+      "xdebug.php-debug",
+      "esbenp.prettier-vscode",
+    ]
+}
