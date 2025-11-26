@@ -1,0 +1,49 @@
+# docker-compose.development.yml - 開発環境用
+version: '3.8'
+
+services:
+  web:
+    build:
+      target: runner
+      context: ../
+      dockerfile: docker/web/Dockerfile
+      args:
+        - NODE_VERSION=${NODE_VERSION:-22}
+    container_name: denzirou-dev-web
+    # ポートは公開せず、nginxコンテナ経由のみでアクセス
+    environment:
+      NODE_ENV: development
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_TO: ${MAIL_TO:-dev@denzirou.com}
+    volumes:
+      - dev_cache:/web/.next/cache  # 権限問題回避のため専用volume
+    networks:
+      - denzirou-development
+    restart: unless-stopped
+    # 開発環境は本番と同じビルドを使用（簡略化）
+
+  nginx:
+    image: nginx:latest
+    container_name: denzirou-dev-nginx
+    ports:
+      - '8081:80'  # 開発環境専用ポート（Basic認証付き）
+    volumes:
+      - ./nginx/nextjs.dev.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/.htpasswd_dev:/etc/nginx/.htpasswd_dev
+    depends_on:
+      - web
+    networks:
+      - denzirou-development
+    restart: unless-stopped
+
+volumes:
+  dev_cache:
+    driver: local
+
+networks:
+  denzirou-development:
+    driver: bridge
+    name: denzirou-development-network

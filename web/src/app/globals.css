@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kosugi:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  @apply leading-[normal] m-0;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+.animation-button {
+  position: relative;
+  overflow: hidden;
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+.animation-button span {
+  position: relative;
+  z-index: 1;
+  transition: color 0.6s cubic-bezier(0.53, 0.21, 0, 1);
+}
+
+.animation-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-100%, -50%);
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  transition: transform 0.6s cubic-bezier(0.53, 0.21, 0, 1);
+}
+
+.animation-button::after {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  content: '>';
+  font-size: 0.8em;
+  transform: translateY(-50%);
+  transition: all 0.6s cubic-bezier(0.53, 0.21, 0, 1);
+}
+
+.animation-button:hover::after {
+  transform: translate(50%, -50%);
+}
+
+.animation-button-primary:hover span {
+  color: #f79256;
+}
+
+.animation-button-secondary:hover span {
+  color: #083d77;
+}
+
+.animation-button:hover::before {
+  transform: translate(0, -50%);
+}
+
+.animation-button-primary:hover::after {
+  color: #f79256;
+}
+
+.animation-button-secondary:hover::after {
+  color: #083d77;
+}
+
+.animation-nav {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.animation-nav::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 1px;
+  top: 110%;
+  left: 0;
+  background-color: #000;
+  transform-origin: bottom right;
+  transition: transform 0.4s cubic-bezier(0.86, 0, 0.07, 1);
+}
+
+.animation-nav:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  color: #fff;
+}
+
+.swiper-pagination-bullet {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #fff !important;
+}
+
+.shadow-text {
+  text-shadow:
+    0 0 5px #fff,
+    0 0 10px #fff,
+    0 0 15px #fff;
+}

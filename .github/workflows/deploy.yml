@@ -1,0 +1,107 @@
+name: Deploy
+
+on:
+  # 手動実行
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'デプロイ環境'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment
+        id: set-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "DEPLOY_ENV=production" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_denzirou
+          chmod 600 ~/.ssh/id_rsa_denzirou
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to ${{ steps.set-env.outputs.DEPLOY_ENV }}
+        run: |
+          DEPLOY_ENV="${{ steps.set-env.outputs.DEPLOY_ENV }}"
+
+          if [ "$DEPLOY_ENV" == "production" ]; then
+            REMOTE_PATH="/opt/denzirou-multi-env/production/"
+            COMPOSE_FILE="docker/docker-compose.production.yml"
+            PROJECT_NAME="denzirou-production"
+            CONTAINER_NAME="denzirou-prod-web"
+            HEALTH_PORT="8080"
+          else
+            REMOTE_PATH="/opt/denzirou-multi-env/development/"
+            COMPOSE_FILE="docker/docker-compose.development.yml"
+            PROJECT_NAME="denzirou-development"
+            CONTAINER_NAME="denzirou-dev-web"
+            HEALTH_PORT="8081"
+          fi
+
+          echo "🚀 ${DEPLOY_ENV}環境へデプロイを開始します"
+
+          # ファイル転送
+          echo "ファイルを転送中..."
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa_denzirou -o StrictHostKeyChecking=no" \
+            --exclude-from="deploy/config/rsync-exclude.txt" \
+            ./ \
+            "admin@denzirou.com:${REMOTE_PATH}"
+
+          # リモートでデプロイ実行
+          ssh -i ~/.ssh/id_rsa_denzirou -o StrictHostKeyChecking=no admin@denzirou.com << EOF
+            cd ${REMOTE_PATH}
+
+            # 既存コンテナ停止
+            docker compose -f ${COMPOSE_FILE} -p ${PROJECT_NAME} down || true
+
+            # 新しいコンテナ起動
+            docker compose -f ${COMPOSE_FILE} -p ${PROJECT_NAME} up -d --build
+
+            # コンテナ起動待機
+            echo "コンテナ起動待機中..."
+            sleep 10
+
+            # コンテナ状態確認
+            if ! docker ps | grep -q "${CONTAINER_NAME}"; then
+              echo "❌ Webコンテナが起動していません"
+              docker ps | grep ${PROJECT_NAME}
+              exit 1
+            fi
+            echo "✅ Docker コンテナ起動確認"
+
+            # ヘルスチェック
+            echo "ヘルスチェック中..."
+            for i in {1..18}; do
+              if curl -f -s http://localhost:${HEALTH_PORT}/health >/dev/null 2>&1; then
+                echo "✅ デプロイ完了"
+                exit 0
+              fi
+              if [ \$i -eq 18 ]; then
+                echo "❌ ヘルスチェックがタイムアウトしました"
+                docker logs ${CONTAINER_NAME} | tail -10
+                exit 1
+              fi
+              echo "待機中... (\$i/18)"
+              sleep 5
+            done
+          EOF
+
+          echo "🎉 ${DEPLOY_ENV}環境へのデプロイが完了しました！"

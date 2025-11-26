@@ -1,0 +1,39 @@
+# デプロイ時に除外するファイル/ディレクトリ
+
+# Git関連
+.git
+.gitignore
+
+# 開発ツール設定
+.vscode/
+.claude/
+.serena/
+.mcp.json
+
+# GitHub関連
+.github/
+
+# ドキュメント
+docs/
+*.md
+local.README.md
+
+# Node.js
+node_modules/
+.next/
+
+# ログ
+deploy/logs/
+*.log
+
+# Docker開発用設定（ローカル専用）
+docker/docker-compose.local.yml
+
+# メールサーバーデータ（本番環境の既存データを保持）
+docker/mailserver/data/dms/mail-state/
+docker/mailserver/data/dms/mail-logs/
+docker/mailserver/data/dms/mail-data/
+docker/mailserver/data/dms/config/
+
+# 環境設定（production.envは必要だが、exampleは不要）
+.env.production.example

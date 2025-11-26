@@ -1,0 +1,73 @@
+# Postfix セキュリティ強化設定
+
+# レート制限強化
+smtpd_client_connection_count_limit = 10
+smtpd_client_connection_rate_limit = 30
+smtpd_client_message_rate_limit = 100
+smtpd_client_recipient_rate_limit = 200
+smtpd_client_event_limit_exceptions = ${mynetworks}
+
+# 送信サイズ制限
+message_size_limit = 52428800
+mailbox_size_limit = 1073741824
+
+# HELO/EHLO制限強化
+smtpd_helo_required = yes
+smtpd_helo_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_invalid_helo_hostname,
+    reject_non_fqdn_helo_hostname,
+    reject_unknown_helo_hostname,
+    warn_if_reject
+
+# 送信者制限強化
+smtpd_sender_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_non_fqdn_sender,
+    reject_unknown_sender_domain,
+    reject_unlisted_sender,
+    warn_if_reject
+
+# 受信者制限強化
+smtpd_recipient_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_non_fqdn_recipient,
+    reject_unknown_recipient_domain,
+    reject_unlisted_recipient,
+    reject_unauth_destination,
+    warn_if_reject
+
+# データ制限
+smtpd_data_restrictions = 
+    reject_unauth_pipelining,
+    warn_if_reject
+
+# アクセス制限
+smtpd_client_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_rbl_client zen.spamhaus.org,
+    reject_rbl_client bl.spamcop.net,
+    reject_rbl_client dnsbl.sorbs.net,
+    warn_if_reject
+
+# TLS強制設定
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+smtpd_tls_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+smtpd_tls_exclude_ciphers = aNULL,eNULL,EXPORT,DES,RC4,MD5,PSK,SRP,CAMELLIA,SEED
+smtpd_tls_mandatory_ciphers = high
+
+# ログ設定強化
+smtpd_tls_loglevel = 2
+smtp_tls_loglevel = 2
+
+# リレー制御強化
+smtpd_relay_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    defer_unauth_destination
